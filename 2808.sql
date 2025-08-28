@@ -1,0 +1,161 @@
+create table filme(
+	id serial primary key,
+	categoria varchar(100),
+	ano_de_lancamento varchar(100),
+	diretor varchar(100),
+	ator_principal varchar(100),
+	nome varchar(100),
+	sinopse text
+);
+
+ALTER TABLE filme MODIFY ano_de_lancamento int;
+explain SELECT * FROM filme WHERE categoria LIKE '%Fic%';
+CREATE INDEX idx_categoria ON filme(categoria);
+
+create table cliente(
+    id_cliente int primary key auto_increment,
+    nome varchar(100) not null,
+    email varchar(100) unique not null,
+    cpf char(11) unique not null,
+    telefone varchar(15),
+    data_cadastro date default current_date
+);
+   
+UPDATE cliente SET telefone = NULL WHERE id_cliente IN (2,4,6,8);
+SELECT c.nome, c.telefone, e.id_emprestimo FROM cliente c LEFT JOIN emprestimo e ON c.id_cliente = e.id_cliente;
+SELECT c.nome, e.id_emprestimo FROM cliente c INNER JOIN emprestimo e ON c.id_cliente = e.id_cliente;
+ALTER TABLE cliente MODIFY id_cliente VARCHAR(10);
+SELECT c.nome, e.id_emprestimo FROM cliente c INNER JOIN emprestimo e ON c.id_cliente = e.id_cliente;
+SELECT c.nome, e.id_emprestimo FROM cliente c LEFT JOIN emprestimo e ON c.id_cliente = e.id_cliente;
+SELECT c.nome, e.id_emprestimo FROM cliente c RIGHT JOIN emprestimo e ON c.id_cliente = e.id_cliente;
+CREATE USER 'gabriel'@'localhost' IDENTIFIED BY 'senha123';
+GRANT ALL PRIVILEGES ON *.* TO 'gabriel'@'localhost' WITH GRANT OPTION;
+
+
+create table funcionario(
+    id_funcionario int primary key auto_increment,
+    nome varchar(100) not null,
+    cargo varchar(50) not null,
+    email varchar(100)unique not null,
+    telefone varchar(15),
+    data_admissao date default current_date
+);
+
+create table emprestimo (
+    id_emprestimo int primary key auto_increment,
+    id_cliente int not null,
+    id_funcionario int not null,
+    data_emprestimo date default current_date,
+    data_devolucao date,
+    status enum('ativo','concluido','atrasado') default 'ativo',
+    observacao text,
+    foreign key (id_cliente) references cliente(id_cliente),
+    foreign key (id_funcionario) references funcionario(id_funcionario)
+);
+
+create table emprestimo_filme(
+    id_emprestimo int not null,
+    id_film int not null,
+   	primary key (id_emprestimo, id_film),
+    foreign key (id_emprestimo) references emprestimo(id_emprestimo),
+    foreign key (id_filme) references filme(id_filme)
+);
+
+create table multa(
+    id_multa int primary key increment,
+    id_cliente int not null,
+    valor decimal(6,2) not null check (valor > 0),
+    data_multa date default current_date,
+    pago boolean default false,
+    descricao varchar(255),
+    id_emprestimo int not null,
+    foreign key (id_cliente) references cliente(id_cliente),
+    foreign key (id_emprestimo) references emprestimo(id_emprestimo)
+);
+
+create view vw_relatorio_emprestimos as
+select e.id_emprestimo, u.nome as cliente, fu.nome as funcionario, 
+       e.data_emprestimo, e.data_devolucao, e.status
+from emprestimo e
+join cliente c on e.id_cliente = c.id_cliente
+join funcionario fu on e.id_funcionario = fu.id_funcionario;
+
+
+create view vw_filmes_emprestados as
+select el.id_emprestimo, fi.sinopse,fi.diretor, fi.categoria, c.nome as cliente
+from emprestimo_filme el
+join filme fi on el.id_filme = fi.id_filme
+join emprestimo e on el.id_emprestimo = e.id_emprestimo
+join cliente c on e.id_cliente = c.id_cliente;
+
+insert into cliente (nome, email, cpf, telefone) values
+('João Silva', 'joao@email.com', '12345678901', '11988887777'),
+('Maria Souza', 'maria@email.com', '23456789012', '21999998888'),
+('Pedro Oliveira', 'pedro@email.com', '34567890123', '11911112222'),
+('Ana Costa', 'ana@email.com', '45678901234', '11922223333'),
+('Lucas Pereira', 'lucas@email.com', '56789012345', '11933334444'),
+('Fernanda Lima', 'fernanda@email.com', '67890123456', '11944445555'),
+('Ricardo Santos', 'ricardo@email.com', '78901234567', '11955556666'),
+('Juliana Alves', 'juliana@email.com', '89012345678', '11966667777'),
+('Marcos Rocha', 'marcos@email.com', '90123456789', '11977778888'),
+('Patrícia Mendes', 'patricia@email.com', '01234567890', '11988889999');
+
+insert into filme (titulo, autor, isbn, genero, ano_publicacao) values
+('O Senhor dos Anéis: A sociedade do Anél', 'Peter Jackson', '9780261102385', 'Fantasia', 2001),
+('Vingadores', 'Kevin Feige', '9788520933184', 'Ação', 2012),
+('Homem_de_Ferro', 'Kevin Feige', '9780451524935', 'Ação', 2008),
+('Matrix', 'Lilly Wachowski', '9780451526342', 'Ficção', 1999),
+('Harry Potter e a Pedra Filosofal', 'Chris Columbus', '9780439554930', 'Fantasia', 2001),
+('O Pequeno Príncipe', 'Mark Osborne', '9780156012195', 'Infantil', 2015),
+('Moby Dick', 'John Huston', '9781503280786', 'Aventura', 1956),
+('Star Wars V', 'Irvin Kershner', '9781503290563', 'Ficção', 1980),
+('Interestelar', 'Christopher Nolan', '9780553213690', 'Ficção', 2014),
+('O Hobbit', 'Peter Jackson', '9780345339683', 'Fantasia', 2012);
+
+insert into Funcionario (nome, cargo, email, telefone) values
+('Carlos Pereira', 'Atendente', 'carlos@bib.com', '1133334444'),
+('Ana Lima', 'Bibliotecária', 'ana@bib.com', '1144445555'),
+('Roberto Souza', 'Atendente', 'roberto@bib.com', '1155556666'),
+('Paula Fernandes', 'Gerente', 'paula@bib.com', '1166667777'),
+('Thiago Silva', 'Auxiliar', 'thiago@bib.com', '1177778888'),
+('Beatriz Gomes', 'Bibliotecária', 'beatriz@bib.com', '1188889999'),
+('Rafael Costa', 'Atendente', 'rafael@bib.com', '1199990000'),
+('Camila Torres', 'Auxiliar', 'camila@bib.com', '1111112222'),
+('Diego Martins', 'Atendente', 'diego@bib.com', '1122223333'),
+('Larissa Almeida', 'Gerente', 'larissa@bib.com', '1133334445');
+
+insert into emprestimo (id_cliente, id_funcionario, data_emprestimo, data_devolucao) values
+(1, 1, '2025-08-01', '2025-08-15'),
+(2, 2, '2025-08-02', '2025-08-16'),
+(3, 3, '2025-08-03', '2025-08-17'),
+(4, 4, '2025-08-04', '2025-08-18'),
+(5, 5, '2025-08-05', '2025-08-19'),
+(6, 6, '2025-08-06', '2025-08-20'),
+(7, 7, '2025-08-07', '2025-08-21'),
+(8, 8, '2025-08-08', '2025-08-22'),
+(9, 9, '2025-08-09', '2025-08-23'),
+(10, 10, '2025-08-10', '2025-08-24');
+
+insert into emprestimo_filme (id_emprestimo, id_filme) values
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8),
+(9, 9),
+(10, 10);
+
+insert into multa (id_cliente, valor, descricao, id_emprestimo) values
+(1, 15.00, 'Atraso na devolução', 1),
+(2, 20.00, 'Livro danificado', 2),
+(3, 10.00, 'Atraso de 3 dias', 3),
+(4, 12.50, 'Atraso de 5 dias', 4),
+(5, 18.00, 'Livro molhado', 5),
+(6, 25.00, 'Perda de exemplar', 6),
+(7, 8.00, 'Atraso leve', 7),
+(8, 30.00, 'Dano físico', 8),
+(9, 22.00, 'Atraso de 10 dias', 9),
+(10, 50.00, 'Extravio do livro', 10);

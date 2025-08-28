@@ -1,0 +1,6 @@
+Eu usei o comando "SELECT * FROM filme WHERE categoria LIKE '%Fic%';" para filtra dentro da tabela filme todos os filmes da categoria ficção.
+Usei o explain para ver ver como o banco ia executar a coluna.
+Usei o index na coluna categoria da tabela filme para o banco encontrar de forma mais rápido.
+Usei o alter table para modificar a forma de identificação da informação inserida na coluna do ano de lançamento na tabela filme e também para modificar o id dos clientes.
+Usei create user para criar o usuário, para dar todas as permissões para ele usei grant all privileges.
+As 12 consultas eu fiz utilizando os clientes e o empréstimos.
